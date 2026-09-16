@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="PokéCards - aplicação front-end que consome a PokéAPI e cria cards dinamicamente.">
+  <title>PokéCards | Personagens Pokémon</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topo">
+    <div class="container cabecalho">
+      <a class="marca" href="#inicio" aria-label="PokéCards - início">
+        <span class="pokebola" aria-hidden="true"></span>
+        <span>PokéCards</span>
+      </a>
+      <nav aria-label="Navegação principal">
+        <a href="#inicio">Início</a>
+        <a href="#personagens">Personagens</a>
+        <a href="#sobre">Sobre</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="container hero-conteudo">
+        <p class="destaque">Projeto Front-End • HTML • CSS • JavaScript</p>
+        <h1>Explore o universo Pokémon</h1>
+        <p>
+          Conheça personagens clássicos por meio de dados obtidos diretamente da PokéAPI.
+          Os cards desta página são criados automaticamente com JavaScript.
+        </p>
+        <a class="botao-principal" href="#personagens">Ver personagens</a>
+      </div>
+    </section>
+
+    <section class="secao container" id="personagens">
+      <div class="titulo-secao">
+        <div>
+          <p class="destaque">Dados da API</p>
+          <h2>Personagens</h2>
+        </div>
+        <div class="busca">
+          <label for="campoBusca">Buscar Pokémon</label>
+          <div class="busca-linha">
+            <input id="campoBusca" type="search" placeholder="Ex.: Pikachu" autocomplete="off">
+            <button id="btnBuscar" type="button">Buscar</button>
+          </div>
+        </div>
+      </div>
+
+      <p id="mensagem" class="mensagem" aria-live="polite">Carregando personagens...</p>
+
+      <!-- Os cards NÃO são estáticos. O JavaScript preencherá este contêiner. -->
+      <div id="cards" class="cards-container" aria-live="polite"></div>
+
+      <div class="acoes">
+        <button id="btnMais" class="botao-secundario" type="button">Carregar mais</button>
+      </div>
+    </section>
+
+    <section class="sobre" id="sobre">
+      <div class="container">
+        <p class="destaque">Sobre o projeto</p>
+        <h2>Integração com API pública</h2>
+        <p>
+          Esta aplicação foi desenvolvida com HTML, CSS puro e JavaScript. O método
+          <strong>fetch()</strong> consulta a PokéAPI, e o DOM é manipulado para criar
+          cada card dinamicamente, sem cadastrar personagens manualmente no HTML.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Desenvolvido por Liliana Terrazas Balderrama • Engenharia de Computação EAD • 2026</p>
+    </div>
+  </footer>
+
+  <script src="js/script.js"></script>
+</body>
+</html>

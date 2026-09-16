@@ -1,0 +1,182 @@
+const API = "https://pokeapi.co/api/v2/pokemon";
+const cards = document.getElementById("cards");
+const mensagem = document.getElementById("mensagem");
+const btnMais = document.getElementById("btnMais");
+const btnBuscar = document.getElementById("btnBuscar");
+const campoBusca = document.getElementById("campoBusca");
+
+let offset = 0;
+const limite = 12;
+
+function obterFavoritos() {
+  return JSON.parse(localStorage.getItem("pokemon-favoritos")) || [];
+}
+
+function alternarFavorito(id, botao) {
+  const favoritos = obterFavoritos();
+  const indice = favoritos.indexOf(id);
+
+  if (indice >= 0) {
+    favoritos.splice(indice, 1);
+  } else {
+    favoritos.push(id);
+  }
+
+  localStorage.setItem("pokemon-favoritos", JSON.stringify(favoritos));
+  const ativo = favoritos.includes(id);
+  botao.textContent = ativo ? "♥" : "♡";
+  botao.classList.toggle("ativo", ativo);
+  botao.setAttribute("aria-label", ativo ? "Remover dos favoritos" : "Adicionar aos favoritos");
+}
+
+function criarCard(pokemon) {
+  const card = document.createElement("article");
+  card.classList.add("card");
+
+  const cabecalho = document.createElement("div");
+  cabecalho.classList.add("card-header");
+
+  const nome = document.createElement("h3");
+  nome.textContent = pokemon.name;
+
+  const favorito = document.createElement("button");
+  favorito.classList.add("favorito");
+  favorito.type = "button";
+
+  const favoritos = obterFavoritos();
+  const estaFavorito = favoritos.includes(pokemon.id);
+  favorito.textContent = estaFavorito ? "♥" : "♡";
+  favorito.classList.toggle("ativo", estaFavorito);
+  favorito.setAttribute("aria-label", estaFavorito ? "Remover dos favoritos" : "Adicionar aos favoritos");
+  favorito.addEventListener("click", () => alternarFavorito(pokemon.id, favorito));
+
+  cabecalho.appendChild(nome);
+  cabecalho.appendChild(favorito);
+
+  const imagemArea = document.createElement("div");
+  imagemArea.classList.add("imagem-area");
+
+  const imagem = document.createElement("img");
+  imagem.src =
+    pokemon.sprites.other["official-artwork"].front_default ||
+    pokemon.sprites.front_default;
+  imagem.alt = `Imagem do Pokémon ${pokemon.name}`;
+  imagem.loading = "lazy";
+  imagemArea.appendChild(imagem);
+
+  const info = document.createElement("div");
+  info.classList.add("card-info");
+
+  const numero = document.createElement("p");
+  numero.innerHTML = `<strong>Número:</strong> #${String(pokemon.id).padStart(3, "0")}`;
+
+  const tipos = document.createElement("p");
+  tipos.classList.add("tipo");
+  tipos.innerHTML = `<strong>Tipo:</strong> ${pokemon.types.map(item => item.type.name).join(", ")}`;
+
+  const altura = document.createElement("p");
+  altura.innerHTML = `<strong>Altura:</strong> ${(pokemon.height / 10).toFixed(1)} m`;
+
+  const peso = document.createElement("p");
+  peso.innerHTML = `<strong>Peso:</strong> ${(pokemon.weight / 10).toFixed(1)} kg`;
+
+  info.appendChild(numero);
+  info.appendChild(tipos);
+  info.appendChild(altura);
+  info.appendChild(peso);
+
+  card.appendChild(cabecalho);
+  card.appendChild(imagemArea);
+  card.appendChild(info);
+  cards.appendChild(card);
+}
+
+async function buscarDetalhes(url) {
+  const resposta = await fetch(url);
+  if (!resposta.ok) {
+    throw new Error("Não foi possível carregar os detalhes do personagem.");
+  }
+  return resposta.json();
+}
+
+async function carregarPokemons() {
+  mensagem.textContent = "Carregando personagens...";
+  btnMais.disabled = true;
+
+  try {
+    const resposta = await fetch(`${API}?limit=${limite}&offset=${offset}`);
+
+    if (!resposta.ok) {
+      throw new Error("Não foi possível acessar a PokéAPI.");
+    }
+
+    const dados = await resposta.json();
+    const detalhes = await Promise.all(
+      dados.results.map(pokemon => buscarDetalhes(pokemon.url))
+    );
+
+    detalhes.forEach(criarCard);
+    offset += limite;
+    mensagem.textContent = "";
+  } catch (erro) {
+    mensagem.textContent = "Ocorreu um erro ao carregar os personagens. Tente novamente.";
+    console.error(erro);
+  } finally {
+    btnMais.disabled = false;
+  }
+}
+
+async function pesquisarPokemon() {
+  const termo = campoBusca.value.trim().toLowerCase();
+
+  if (!termo) {
+    cards.innerHTML = "";
+    offset = 0;
+    btnMais.hidden = false;
+    carregarPokemons();
+    return;
+  }
+
+  mensagem.textContent = "Buscando personagem...";
+  btnBuscar.disabled = true;
+
+  try {
+    const resposta = await fetch(`${API}/${encodeURIComponent(termo)}`);
+
+    if (!resposta.ok) {
+      throw new Error("Pokémon não encontrado.");
+    }
+
+    const pokemon = await resposta.json();
+    cards.innerHTML = "";
+    criarCard(pokemon);
+    btnMais.hidden = true;
+    mensagem.textContent = "";
+  } catch (erro) {
+    cards.innerHTML = "";
+    btnMais.hidden = true;
+    mensagem.textContent = "Pokémon não encontrado. Verifique o nome e tente novamente.";
+  } finally {
+    btnBuscar.disabled = false;
+  }
+}
+
+btnMais.addEventListener("click", carregarPokemons);
+btnBuscar.addEventListener("click", pesquisarPokemon);
+
+campoBusca.addEventListener("keydown", event => {
+  if (event.key === "Enter") {
+    pesquisarPokemon();
+  }
+});
+
+campoBusca.addEventListener("input", () => {
+  if (campoBusca.value.trim() === "") {
+    cards.innerHTML = "";
+    offset = 0;
+    btnMais.hidden = false;
+    carregarPokemons();
+  }
+});
+
+carregarPokemons();
